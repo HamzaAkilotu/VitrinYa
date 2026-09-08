@@ -1,0 +1,25 @@
+@model List<Collection>
+@{ ViewData["Title"] = "Koleksiyonlar"; ViewData["Panel"] = true; }
+<div class="page-heading">
+    <div class="eyebrow">BİR ARAYA GELİNCE GÜZEL</div>
+    <h1>Koleksiyonlar</h1>
+    <p>Tematik seçimlerle müşterilere ilham verin.</p>
+</div>
+<div class="toolbar">
+    <span>@Model.Count koleksiyon</span>
+    <a class="button small" asp-action="Collection">Yeni koleksiyon +</a>
+</div>
+@foreach (var c in Model) { <div class="surface">
+    <div class="toolbar">
+        <h3>@c.Name</h3>
+        <span class="badge">@c.Products.Count ürün</span>
+    </div>
+    <p>@c.Description</p>
+    <div class="form-actions">
+        <a class="underlink" asp-action="Collection" asp-route-id="@c.Id">Düzenle ↗</a>
+        <form asp-action="DeleteCollection" method="post" data-confirm="Koleksiyon kaldırılacak, ürünler korunacak. Devam edilsin mi?">
+            <input name="id" type="hidden" value="@c.Id"/>
+            <button type="submit" class="text-button">Kaldır</button>
+        </form>
+    </div>
+</div> }

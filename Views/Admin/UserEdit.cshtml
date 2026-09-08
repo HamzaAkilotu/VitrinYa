@@ -1,0 +1,31 @@
+@model UserInput
+@{ ViewData["Title"] = Model.Id is null ? "Yeni hesap" : "Hesabı yönet"; ViewData["Panel"] = true; }
+<div class="page-heading">
+    <div class="eyebrow">DOĞRU KİŞİ, DOĞRU YETKİ</div>
+    <h1>@ViewData["Title"]</h1>
+</div>
+<form class="surface" asp-action="UserEdit" method="post">
+    <div asp-validation-summary="All" class="validation">
+    </div>
+    <input asp-for="Id" type="hidden"/>
+    <label asp-for="DisplayName">
+    </label>
+    <input asp-for="DisplayName"/>
+    <label asp-for="Email">
+    </label>
+    <input asp-for="Email"/>
+    <label asp-for="Role">
+    </label>
+    <select asp-for="Role">@foreach (var role in Roles.All) { <option value="@role">@Roles.Label(role)</option> }</select>
+    @if (Model.Id is null) { <label asp-for="Password">
+    </label>
+    <input asp-for="Password" autocomplete="new-password"/>
+    <p class="fine-print">En az 8 karakter; büyük/küçük harf, rakam ve özel karakter.</p> }
+    <label>
+        <input asp-for="IsActive"/> Hesap aktif</label>
+    <p>Yetki değişiklikleri mevcut oturumları sonlandırır. Pasif satıcının ürünleri vitrinde görünmez.</p>
+    <div class="form-actions">
+        <button class="button" type="submit">Hesabı kaydet</button>
+        <a class="text-button" asp-action="Users">Vazgeç</a>
+    </div>
+</form>

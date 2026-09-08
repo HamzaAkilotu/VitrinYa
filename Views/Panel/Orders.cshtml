@@ -1,0 +1,35 @@
+@model List<OrderItem>
+@{ ViewData["Title"] = User.IsInRole(Roles.Seller) ? "Satışlarım" : "Sipariş yönetimi"; ViewData["Panel"] = true; }
+<div class="page-heading">
+    <div class="eyebrow">SİPARİŞLERİN YOLCULUĞU</div>
+    <h1>@ViewData["Title"]</h1>
+    <p>@(User.IsInRole(Roles.Seller) ? "Yalnızca kendi ürünlerinize ait sipariş kalemleri gösterilir." : "Siparişleri alındı, hazırlanıyor ve tamamlandı aşamalarında yönetin.")</p>
+</div>
+@if (Model.Count == 0) { <div class="empty">
+    <h2>Henüz sipariş yok.</h2>
+</div> }
+@foreach (var group in Model.GroupBy(x => x.OrderId)) { var order = group.First().Order;
+<div class="surface">
+    <div class="toolbar">
+        <h3>VY-@order.Id.ToString("D6")</h3>
+        <span class="badge">@order.Status</span>
+    </div>
+    <p>@order.CreatedAt.ToLocalTime().ToString("dd MMMM yyyy HH:mm") · @order.RecipientName</p>
+    @foreach (var line in group) { <div class="summary-line">
+        <span>@line.ProductName × @line.Quantity</span>
+        <b>@((line.UnitPriceCents * line.Quantity / 100m).ToString("N2")) TL</b>
+    </div> }
+    <div class="summary-line total">
+        <span>@(User.IsInRole(Roles.Seller) ? "Size ait toplam" : "Toplam")</span>
+        <b>@((group.Sum(x => x.UnitPriceCents * x.Quantity) / 100m).ToString("N2")) TL</b>
+    </div>
+    <p class="preserve-lines">@order.Address</p>
+    @if (User.IsInRole(Roles.Admin)) { <div class="form-actions">
+        <a class="underlink" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">Sipariş detayı</a>@if (order.Status != "Tamamlandı") { <form asp-action="UpdateOrder" method="post">
+            <input name="id" type="hidden" value="@order.Id"/>
+            <input name="status" type="hidden" value="@(order.Status == "Alındı" ? "Hazırlanıyor" : "Tamamlandı")"/>
+            <button type="submit" class="button small">@(order.Status == "Alındı" ? "Hazırlanmaya başla" : "Tamamlandı olarak işaretle")</button>
+        </form> }</div> }
+</div> }
+
+<partial name="_Pager" />

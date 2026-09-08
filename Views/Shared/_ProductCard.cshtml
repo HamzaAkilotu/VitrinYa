@@ -1,0 +1,29 @@
+@model Product
+@{
+    var thumbnail = Model.ImageUrl;
+    var responsive = Uri.TryCreate(thumbnail, UriKind.Absolute, out var uri) && uri.Host == "images.unsplash.com" && thumbnail.Contains("w=1000");
+    if (responsive) thumbnail = thumbnail.Replace("w=1000", "w=480");
+}
+<article class="product-card" id="product-@Model.Id">
+    <div class="product-visual">
+        <a class="product-image" asp-controller="Home" asp-action="Product" asp-route-id="@Model.Id">
+            <img src="@thumbnail" srcset="@(responsive ? thumbnail + " 480w, " + Model.ImageUrl + " 1000w" : null)"
+                 sizes="(max-width: 540px) 45vw, (max-width: 800px) 40vw, 300px"
+                 alt="@Model.Name" loading="lazy" decoding="async" width="480" height="552" />
+            @if (Model.Stock == 0) { <span class="product-tag">Şimdilik tükendi</span> }
+            else if (Model.Stock <= 3) { <span class="product-tag low-stock">Son @Model.Stock adet</span> }
+            <span class="product-discover" aria-hidden="true">Yakından keşfet ↗</span>
+        </a>
+        <partial name="_FavoriteButton" model="Model" />
+    </div>
+    <div class="product-meta">
+        <a asp-controller="Home" asp-action="Catalog" asp-route-SellerId="@Model.SellerId">@Model.Seller.DisplayName</a>
+        <span>@Model.Category.Name</span>
+    </div>
+    <h3><a asp-controller="Home" asp-action="Product" asp-route-id="@Model.Id">@Model.Name</a></h3>
+    <div class="product-bottom">
+        <strong>@Model.Price.ToString("N2") <small>TL</small></strong>
+        <span class="preparation-note">@Model.PreparationDays iş gününde hazır</span>
+    </div>
+</article>
+

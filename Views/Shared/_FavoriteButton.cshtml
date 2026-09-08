@@ -1,0 +1,26 @@
+@model Product
+@{
+    var saved = (ViewData["FavoriteIds"] as HashSet<int>)?.Contains(Model.Id) == true;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString + "#product-" + Model.Id;
+}
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <form asp-controller="Home" asp-action="SaveFavorite" method="post" class="favorite-form">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="save" value="@(!saved)" />
+        <input type="hidden" name="returnUrl" value="@returnUrl" />
+        <button class="favorite-button @(saved ? "saved" : "")" type="submit"
+                aria-label="@(saved ? Model.Name + " favorilerden çıkar" : Model.Name + " favorilere kaydet")"
+                aria-pressed="@saved.ToString().ToLowerInvariant()" title="@(saved ? "Favorilerden çıkar" : "Favorilere kaydet")">
+            <svg class="icon"><use href="#i-heart" /></svg>
+        </button>
+    </form>
+}
+else
+{
+    <a class="favorite-button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl"
+       aria-label="@Model.Name favorilere kaydetmek için giriş yap" title="Giriş yaparak kaydet">
+        <svg class="icon"><use href="#i-heart" /></svg>
+    </a>
+}
+

@@ -1,0 +1,94 @@
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Globalization
+@model CatalogViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    var sellerName = ViewData["SellerName"] as string;
+    var pager = (PageInfo)ViewData["Pager"]!;
+    var chips = new List<(string Key, string Label)>();
+    if (Model.Search is not null) chips.Add(("Search", "Arama: " + Model.Search));
+    if (Model.CategoryId.HasValue) chips.Add(("CategoryId", Model.Categories.Single(x => x.Id == Model.CategoryId).Name));
+    if (Model.CollectionId.HasValue) chips.Add(("CollectionId", Model.Collections.Single(x => x.Id == Model.CollectionId).Name));
+    if (sellerName is not null) chips.Add(("SellerId", sellerName));
+    if (Model.MinPrice.HasValue) chips.Add(("MinPrice", "En az " + Model.MinPrice.Value.ToString("N2") + " TL"));
+    if (Model.MaxPrice.HasValue) chips.Add(("MaxPrice", "En çok " + Model.MaxPrice.Value.ToString("N2") + " TL"));
+    if (Model.InStock) chips.Add(("InStock", "Sadece stoktakiler"));
+    string RemoveFilter(string key)
+    {
+        var query = Context.Request.Query.Where(x => !x.Key.Equals(key, StringComparison.OrdinalIgnoreCase)
+            && !x.Key.Equals("page", StringComparison.OrdinalIgnoreCase)).ToDictionary(x => x.Key, x => (string?)x.Value.ToString());
+        return QueryHelpers.AddQueryString(Url.Action("Catalog")!, query) + "#results";
+    }
+}
+<div class="container page catalog-page">
+    <div class="breadcrumb"><a asp-action="Index">Ana sayfa</a><span>/</span><span>@(Model.FavoritesOnly ? "Favorilerim" : "Vitrin")</span></div>
+    <div class="page-heading catalog-heading">
+        <div>
+            <div class="eyebrow">@(Model.FavoritesOnly ? "BİR KALP BIRAKTIĞIN TASARIMLAR" : sellerName is not null ? "BAĞIMSIZ MARKA VİTRİNİ" : "AZ, ÖZ, ÖZENLİ")</div>
+            <h1>@Model.Title</h1>
+            <p>@(Model.FavoritesOnly ? "Sonra dönüp bakmak istediğin parçalar, bir arada. Yalnızca satışa açık ürünler gösterilir." : sellerName is not null ? "Bu markanın yaşamına eşlik edecek tasarımlarıyla tanış." : "Yaşamına biraz sıcaklık, masanın bir köşesine biraz ilham.")</p>
+        </div>
+        <span class="catalog-flower" aria-hidden="true">✳</span>
+    </div>
+    @if (ViewData["FilterWarning"] is string warning) { <div class="notice error" role="status">@warning</div> }
+    <div class="catalog-layout">
+        <details class="filter-panel" open>
+            <summary><svg class="icon"><use href="#i-filter" /></svg> Filtrele <span>@chips.Count seçim</span><b>⌄</b></summary>
+            <form class="filters" id="catalog-filters" method="get" asp-action="Catalog" asp-fragment="results">
+                <h3>Sana göre bir vitrin</h3>
+                @if (Model.FavoritesOnly) { <input type="hidden" name="FavoritesOnly" value="true" /> }
+                @if (Model.SellerId is not null) { <input type="hidden" name="SellerId" value="@Model.SellerId" /> }
+                <label for="search">Ürün veya marka</label>
+                <input id="search" name="Search" value="@Model.Search" placeholder="Ne arıyorsun?" maxlength="120" />
+                <label for="category">Kategori</label>
+                <select id="category" asp-for="CategoryId"><option value="">Tüm kategoriler</option>
+                    @foreach (var c in Model.Categories) { <option value="@c.Id">@c.Name</option> }
+                </select>
+                <label for="collection">Koleksiyon</label>
+                <select id="collection" asp-for="CollectionId"><option value="">Tüm koleksiyonlar</option>
+                    @foreach (var c in Model.Collections) { <option value="@c.Id">@c.Name</option> }
+                </select>
+                <label>Fiyat aralığı (TL)</label>
+                <div class="price-fields">
+                    <input name="MinPrice" value="@Model.MinPrice?.ToString(CultureInfo.InvariantCulture)" type="number" min="0" max="1000000" step="0.01" placeholder="En az" aria-label="En düşük fiyat" />
+                    <span>—</span>
+                    <input name="MaxPrice" value="@Model.MaxPrice?.ToString(CultureInfo.InvariantCulture)" type="number" min="0" max="1000000" step="0.01" placeholder="En çok" aria-label="En yüksek fiyat" />
+                </div>
+                <label class="checkbox-label"><input asp-for="InStock" /> Sadece stoktakiler</label>
+                <button class="button" type="submit">Ürünleri göster ↗</button>
+                <a class="text-button" asp-action="Catalog" asp-route-FavoritesOnly="@(Model.FavoritesOnly ? true : (bool?)null)">Tüm filtreleri temizle</a>
+            </form>
+        </details>
+        <section id="results" class="catalog-results">
+            <div class="result-count">
+                <span><b>@Model.Total</b> ürün <small>@(Model.Total > 0 ? $"· {pager.Offset + 1}–{pager.Offset + Model.Products.Count} gösteriliyor" : "")</small></span>
+                <div class="sort-control"><label for="sort">Sırala</label>
+                    <select id="sort" name="Sort" form="catalog-filters" data-auto-submit>
+                        <option value="newest" selected="@(Model.Sort == "newest")">Yeni eklenenler</option>
+                        <option value="price-low" selected="@(Model.Sort == "price-low")">Fiyat: artan</option>
+                        <option value="price-high" selected="@(Model.Sort == "price-high")">Fiyat: azalan</option>
+                    </select>
+                </div>
+            </div>
+            @if (chips.Count > 0)
+            {
+                <div class="filter-chips" aria-label="Uygulanan filtreler">
+                    @foreach (var chip in chips) { <a href="@RemoveFilter(chip.Key)" aria-label="@chip.Label filtresini kaldır">@chip.Label <span aria-hidden="true">×</span></a> }
+                </div>
+            }
+            @if (Model.Products.Count == 0)
+            {
+                <div class="empty">
+                    <span>♡</span><h2>@(Model.FavoritesOnly && chips.Count == 0 ? "İlk favorin seni bekliyor." : "Bu seçimde henüz ürün yok.")</h2>
+                    <p>@(Model.FavoritesOnly && chips.Count == 0 ? "Beğendiğin tasarımlara kalp bırak; hepsi burada seni beklesin." : "Filtrelerini genişlet veya başka bir kelimeyle yeniden dene.")</p>
+                    <a asp-action="Catalog" class="button">Tüm tasarımları keşfet ↗</a>
+                </div>
+            }
+            <div class="product-grid catalog-grid">
+                @foreach (var p in Model.Products) { <partial name="_ProductCard" model="p" /> }
+            </div>
+            <partial name="_Pager" />
+        </section>
+    </div>
+</div>
+

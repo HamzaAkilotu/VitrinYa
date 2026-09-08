@@ -1,0 +1,40 @@
+@model List<CategoryRow>
+@{ ViewData["Title"] = "Kategoriler"; ViewData["Panel"] = true; }
+<div class="page-heading">
+    <div class="eyebrow">VİTRİNİN DÜZENİ</div>
+    <h1>Kategoriler</h1>
+    <p>Ürün geçmişi olan kategoriler silinemez; isimleri güncellenebilir.</p>
+</div>
+<div class="surface">
+    <h3>Yeni kategori</h3>
+    <form asp-action="SaveCategory" method="post" class="inline-form">
+        <input name="name" placeholder="Kategori adı" aria-label="Yeni kategori adı" required maxlength="60" style="max-width:300px"/>
+        <button class="button small" type="submit">Ekle +</button>
+    </form>
+</div>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>KATEGORİ</th>
+                <th>ÜRÜN SAYISI</th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>@foreach (var c in Model) { <tr>
+                <td>
+                    <form asp-action="SaveCategory" method="post" class="inline-form">
+                        <input name="id" type="hidden" value="@c.Id"/>
+                        <input name="name" value="@c.Name" aria-label="@c.Name yeni adı" required maxlength="60" style="max-width:220px"/>
+                        <button type="submit" class="text-button">Kaydet</button>
+                    </form>
+                </td>
+                <td>@c.ProductCount</td>
+                <td>@if (c.ProductCount == 0) { <form asp-action="DeleteCategory" method="post" data-confirm="Boş kategori silinsin mi?">
+                        <input name="id" type="hidden" value="@c.Id"/>
+                        <button type="submit" class="text-button">Sil</button>
+                    </form> }</td>
+            </tr> }</tbody>
+    </table>
+</div>

@@ -1,0 +1,66 @@
+@model CartViewModel
+@{ ViewData["Title"] = "Sepetim"; }
+<div class="container page">
+    <div class="breadcrumb"><a asp-controller="Home" asp-action="Index">Ana sayfa</a><span>/</span><span>Sepetim</span></div>
+    <div class="page-heading"><div class="eyebrow">GÜZEL SEÇİMLER</div><h1>Sepetindeki mutluluklar.</h1><p>Küçük markalardan, senin dünyana doğru.</p></div>
+    <div class="cart-progress" aria-label="Alışveriş adımları"><span><b>01 · Sepetim</b></span><span>02 · Teslimat bilgileri</span><span>03 · Sipariş tamam</span></div>
+    <div asp-validation-summary="All" class="validation"></div>
+    @if (Model.Items.Count == 0)
+    {
+        <div class="empty"><span>♡</span><h2>Sepetin güzel keşifler bekliyor.</h2><p>Senin için seçtiğimiz tasarımlara göz at.</p><a class="button" asp-controller="Home" asp-action="Catalog">Vitrini keşfet ↗</a></div>
+    }
+    else
+    {
+        <div class="cart-layout">
+            <section class="cart-items">
+                @foreach (var group in Model.Items.GroupBy(x => x.Product.SellerId))
+                {
+                    <div class="seller-group-heading"><h2>@group.First().Product.Seller.DisplayName</h2><span>@group.Sum(x => x.Quantity) ürün</span></div>
+                    @foreach (var line in group)
+                    {
+                        var available = !line.Product.IsDeleted && line.Product.Status == ProductStatus.Published && line.Product.Seller.IsActive;
+                        var enoughStock = line.Quantity <= line.Product.Stock;
+                        <article class="cart-line @(!available || !enoughStock ? "warning" : "")">
+                            <img src="@line.Product.ImageUrl" alt="@line.Product.Name" width="100" height="130" />
+                            <div>
+                                <h3>@if (available) { <a asp-controller="Home" asp-action="Product" asp-route-id="@line.ProductId">@line.Product.Name</a> } else { @line.Product.Name }</h3>
+                                <p>@line.Product.Price.ToString("N2") TL / adet</p>
+                                @if (!available) { <p class="line-warning">Bu ürün artık satışta değil. Devam etmek için sepetinden çıkar.</p> }
+                                else if (!enoughStock) { <p class="line-warning">Stokta @line.Product.Stock adet kaldı. Miktarı güncelle veya ürünü çıkar.</p> }
+                                else { <p class="fine-print">@line.Product.PreparationDays iş gününde hazırlanır.</p> }
+                                @if (available)
+                                {
+                                    <form asp-action="Update" method="post" class="inline-form">
+                                        <input type="hidden" name="id" value="@line.Id" />
+                                        <input type="number" name="quantity" value="@line.Quantity" min="0" max="99" aria-label="@line.Product.Name adet" required />
+                                        <button class="text-button" type="submit">Güncelle</button>
+                                    </form>
+                                }
+                                <form asp-action="Update" method="post">
+                                    <input type="hidden" name="id" value="@line.Id" /><input type="hidden" name="quantity" value="0" />
+                                    <button class="text-button muted" type="submit">Sepetten çıkar</button>
+                                </form>
+                            </div>
+                            <strong>@((line.Product.Price * line.Quantity).ToString("N2")) TL</strong>
+                        </article>
+                    }
+                }
+                <a class="underlink" asp-controller="Home" asp-action="Catalog">← Keşfetmeye devam et</a>
+            </section>
+            <aside class="checkout-card">
+                <h2>Sipariş özeti</h2>
+                <div class="summary-line"><span>Ürünler (@Model.Items.Sum(x => x.Quantity) adet)</span><b>@Model.Total.ToString("N2") TL</b></div>
+                <div class="summary-line"><span>Teslimat (demo)</span><span>Ücretsiz</span></div>
+                <div class="summary-line total"><span>Toplam</span><b>@Model.Total.ToString("N2") TL</b></div>
+                <form asp-action="Checkout" method="post">
+                    <input asp-for="Checkout.Token" type="hidden" /><input asp-for="Checkout.CartFingerprint" type="hidden" />
+                    <label asp-for="Checkout.RecipientName"></label><input asp-for="Checkout.RecipientName" autocomplete="name" required maxlength="100" />
+                    <label asp-for="Checkout.Address"></label><textarea asp-for="Checkout.Address" rows="3" autocomplete="street-address" required minlength="10" maxlength="500" placeholder="Mahalle, sokak, bina / daire, ilçe ve il"></textarea>
+                    <div class="payment-note">◇ <span><b>Demo ödeme</b><br />Kart bilgisi istenmez, gerçek ödeme alınmaz. Ürünler yalnızca bu işlem tamamlandığında stoktan düşer.</span></div>
+                    @if (!Model.CanCheckout) { <p class="validation" role="alert">Devam etmek için sepetindeki işaretli ürünleri düzenle.</p> }
+                    <button class="button" type="submit" disabled="@(!Model.CanCheckout)">Siparişi oluştur ↗</button>
+                </form>
+            </aside>
+        </div>
+    }
+</div>

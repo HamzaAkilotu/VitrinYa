@@ -1,0 +1,27 @@
+@model Order
+@{ ViewData["Title"] = "Sipariş detayı"; ViewData["Panel"] = true; }
+<div class="page-heading">
+    <div class="eyebrow">SİPARİŞ DETAYI</div>
+    <h1>VY-@Model.Id.ToString("D6")</h1>
+    <p>@Model.CreatedAt.ToLocalTime().ToString("dd MMMM yyyy · HH:mm") <span class="badge">@Model.Status</span>
+    </p>
+</div>
+<div class="surface">
+    <h3>Güzel seçimlerin</h3>@foreach (var item in Model.Items) { <div class="summary-line">
+        <div>
+            <b>@item.ProductName</b>
+            <p>@item.Seller.DisplayName · @item.Quantity adet × @((item.UnitPriceCents / 100m).ToString("N2")) TL</p>
+        </div>
+        <strong>@((item.UnitPriceCents * item.Quantity / 100m).ToString("N2")) TL</strong>
+    </div> }<div class="summary-line total">
+        <b>Toplam</b>
+        <b>@Model.Total.ToString("N2") TL</b>
+    </div>
+</div>
+<div class="surface">
+    <h3>Teslimat bilgileri</h3>
+    <b>@Model.RecipientName</b>
+    <p class="preserve-lines">@Model.Address</p>
+    <div class="payment-note">Demo ödeme başarılı. Gerçek ödeme veya kargo işlemi yapılmaz.</div>
+</div>
+<a class="underlink" asp-action="Index">← Siparişlerime dön</a>

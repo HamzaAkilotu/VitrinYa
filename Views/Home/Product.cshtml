@@ -1,0 +1,76 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Name;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var related = ViewData["RelatedProducts"] as List<Product> ?? [];
+}
+<div class="container page detail-page" id="product-@Model.Id">
+    <div class="breadcrumb"><a asp-action="Index">Ana sayfa</a><span>/</span><a asp-action="Catalog" asp-route-CategoryId="@Model.CategoryId">@Model.Category.Name</a><span>/</span><span>@Model.Name</span></div>
+    <section class="product-detail">
+        <div class="detail-photo">
+            <button type="button" class="photo-zoom" data-open-photo aria-label="@Model.Name görselini büyüt">
+                <img src="@Model.ImageUrl" alt="@Model.Name" width="1000" height="1200" fetchpriority="high" />
+                <span>Görseli büyüt ⤢</span>
+            </button>
+            <partial name="_FavoriteButton" model="Model" />
+        </div>
+        <div class="detail-copy">
+            <a class="eyebrow maker-link" asp-action="Catalog" asp-route-SellerId="@Model.SellerId">@Model.Seller.DisplayName <span>MARKAYI KEŞFET ↗</span></a>
+            <h1>@Model.Name</h1>
+            <div class="detail-price">@Model.Price.ToString("N2") <small>TL</small></div>
+            <p class="lead">@Model.Description</p>
+            <div class="availability @(Model.Stock == 0 ? "unavailable" : "")">
+                <span>@(Model.Stock > 3 ? "● Stokta, senin için hazır" : Model.Stock > 0 ? $"● Son {Model.Stock} adet" : "○ Şimdilik tükendi")</span>
+                <span>@Model.PreparationDays iş gününde hazırlanır</span>
+            </div>
+            @if (signedIn)
+            {
+                <form id="purchase-form" asp-controller="Cart" asp-action="Add" method="post" class="add-to-cart">
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <label class="sr-only" for="quantity">Adet</label>
+                    <input id="quantity" type="number" name="quantity" value="1" min="1" max="@Math.Max(1, Math.Min(99, Model.Stock))" disabled="@(Model.Stock == 0)" />
+                    <button class="button" type="submit" disabled="@(Model.Stock == 0)">@(Model.Stock > 0 ? "Sepete ekle" : "Şimdilik tükendi") <svg class="icon"><use href="#i-bag" /></svg></button>
+                </form>
+            }
+            else if (Model.Stock > 0)
+            {
+                <a class="button guest-purchase" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Product", new { id = Model.Id })">Giriş yap ve sepete ekle <svg class="icon"><use href="#i-bag" /></svg></a>
+            }
+            else { <button class="button guest-purchase" disabled>Şimdilik tükendi</button> }
+            <div class="purchase-promises">
+                <span><b>Ücretsiz teslimat</b><small>Demo siparişlerinde</small></span>
+                <span><b>Kart bilgisi gerekmez</b><small>Gerçek ödeme alınmaz</small></span>
+            </div>
+            <div class="specifications">
+                <h3>Her detayında özen.</h3>
+                <dl><dt>Malzeme</dt><dd>@Model.Material</dd><dt>Ölçüler</dt><dd>@Model.Dimensions</dd>
+                    <dt>Kutu içeriği</dt><dd>@Model.BoxContents</dd><dt>Hazırlık süresi</dt><dd>@Model.PreparationDays iş günü</dd>
+                </dl>
+            </div>
+            <a class="maker-note" asp-action="Catalog" asp-route-SellerId="@Model.SellerId"><span class="maker-monogram">@Model.Seller.DisplayName[..1]</span>
+                <span>Küçük bir markadan, senin dünyana.<br /><b>@Model.Seller.DisplayName ürünlerini keşfet ↗</b></span>
+            </a>
+        </div>
+    </section>
+    @if (related.Count > 0)
+    {
+        <section class="related-products">
+            <div class="section-heading horizontal"><div><div class="eyebrow">BİRAZ DAHA KEŞİF</div><h2>Bunlar da sana yakışır.</h2></div>
+                <a class="underlink" asp-action="Catalog" asp-route-CategoryId="@Model.CategoryId">Kategoriyi keşfet ↗</a>
+            </div>
+            <div class="product-grid">@foreach (var p in related) { <partial name="_ProductCard" model="p" /> }</div>
+        </section>
+    }
+</div>
+<dialog class="photo-dialog" aria-label="@Model.Name büyük görsel">
+    <button type="button" class="dialog-close" data-close-photo aria-label="Görseli kapat">×</button>
+    <img src="@Model.ImageUrl" alt="@Model.Name" loading="lazy" />
+</dialog>
+@if (Model.Stock > 0)
+{
+    <div class="mobile-buybar"><span>@Model.Price.ToString("N2") <small>TL</small></span>
+        @if (signedIn) { <button class="button" form="purchase-form" type="submit">Sepete ekle</button> }
+        else { <a class="button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Product", new { id = Model.Id })">Giriş yap ve al</a> }
+    </div>
+}
+

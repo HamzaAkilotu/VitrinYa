@@ -1,0 +1,102 @@
+@model CatalogViewModel
+@{ ViewData["Title"] = "Küçük markalar, güzel keşifler"; }
+<div class="container home">
+    <section class="hero">
+        <div class="hero-copy">
+            <div class="eyebrow">
+                <span class="tiny-sun">✳</span> YAŞAMINA İYİ GELEN ŞEYLER</div>
+            <h1>Küçük dokunuşlar,<br/>
+                <em>güzel bir yaşam.</em>
+            </h1>
+            <p>Evine, masanı paylaştığın anlara, sevdiklerine.<br/> Küçük markaların özenle tasarladığı güzellikleri keşfet.</p>
+            <a class="button" asp-action="Catalog">Vitrini keşfet <svg class="icon">
+                    <use href="#i-arrow"/>
+                </svg>
+            </a>
+            <div class="hero-note">
+                <span>✧</span> Sıradanın dışında, sana yakın.</div>
+        </div>
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=90" alt="Doğal tonlar ve özenli detaylarla sıcak bir yaşam alanı" fetchpriority="high"/>
+            <div class="hero-sticker">küçük<br/>
+                <b>mutluluklar</b>
+                <span>için bir yer.</span>
+            </div>
+            <a class="hero-caption" asp-action="Catalog" asp-route-CategoryId="1">
+                <span>EV & YAŞAM<br/>
+                    <b>İyi hissettiren köşeler</b>
+                </span>
+                <span>↗</span>
+            </a>
+        </div>
+    </section>
+    <div class="values-strip">
+        <span>✧ <b>Bağımsız markalar</b> Özgün tasarımlar</span>
+        <span>◇ <b>Özenle seçildi</b> Her detayında emek</span>
+        <span>♡ <b>Anlamlı hediyeler</b> Küçük, güzel mutluluklar</span>
+    </div>
+    <section class="category-section">
+        <div class="section-heading">
+            <div class="eyebrow">NEREDEN BAŞLAYALIM?</div>
+            <h2>Senin dünyan, senin seçimlerin.</h2>
+        </div>
+        <div class="category-links">
+            @foreach (var c in Model.Categories) { <a asp-action="Catalog" asp-route-CategoryId="@c.Id">
+                <span>@(c.Name.Contains("Masa") ? "✎" : c.Name.Contains("Aydın") ? "☼" : c.Name.Contains("Hediye") ? "✧" : "⌂")</span>@c.Name <b>↗</b>
+            </a> }
+        </div>
+    </section>
+    <section id="collections">
+        <div class="section-heading horizontal">
+            <div>
+                <div class="eyebrow">BİRAZ İLHAM</div>
+                <h2>Bir araya gelince daha güzel.</h2>
+            </div>
+            <span>Senin için hazırladığımız koleksiyonlar</span>
+        </div>
+        <div class="collection-grid">
+            @for (var i = 0; i < Model.Collections.Count; i++) {
+            var c = Model.Collections[i];
+            <a class="collection-card collection-@i" asp-action="Catalog" asp-route-CollectionId="@c.Id">
+                <img src="@(i % 2 == 0 ? "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=900&q=85" : "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=900&q=85")" alt="" loading="lazy"/>
+                <div>
+                    <span class="eyebrow">ÖZENLE BİR ARADA</span>
+                    <h3>@c.Name</h3>
+                    <p>@c.Description</p>
+                    <span class="collection-cta">Koleksiyonu keşfet <b>↗</b>
+                    </span>
+                </div>
+            </a>
+            }
+        </div>
+    </section>
+    <section class="new-products">
+        <div class="section-heading horizontal">
+            <div>
+                <div class="eyebrow">VİTRİNE YENİ GELENLER</div>
+                <h2>Yeni favorin burada olabilir.</h2>
+            </div>
+            <a class="underlink" asp-action="Catalog">Tümünü keşfet ↗</a>
+        </div>
+        <div class="product-grid">@foreach (var p in Model.Products) { <partial name="_ProductCard" model="p"/> }</div>
+    </section>
+    <section class="budget-banner">
+        <div>
+            <div class="eyebrow">GÜZEL ŞEYLER İÇİN BÜYÜK BÜTÇELER GEREKMEZ</div>
+            <h2>Küçük bir hediye.<br/>Kocaman bir gülümseme.</h2>
+            <a class="button light" asp-action="Catalog" asp-route-MaxPrice="500">500 TL altını keşfet ↗</a>
+        </div>
+        <div class="budget-art">
+            <span>500<small>TL ALTI</small>
+            </span>
+            <i>✳</i>
+        </div>
+    </section>
+    <section class="brand-story">
+        <div class="eyebrow">TANIŞTIĞIMIZA MEMNUN OLDUK</div>
+        <h2>Bir üründen biraz daha fazlası.</h2>
+        <p>VitrinYa, işini severek yapan küçük markalarla güzel şeyleri sevenleri buluşturur.<br/>Her tasarımda bir fikir, her pakette biraz özen. Senin hayatında yeni bir hikâye.</p>
+        <span>Seçerek, severek, birlikte. ♡</span>
+    </section>
+</div>
+

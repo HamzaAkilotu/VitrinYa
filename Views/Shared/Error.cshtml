@@ -1,0 +1,9 @@
+@model ErrorViewModel
+@{ ViewData["Title"] = "Bir sorun oluştu"; }
+<div class="container empty">
+    <span>◇</span>
+    <h1>Bu işlem tamamlanamadı.</h1>
+    <p>Biraz sonra tekrar deneyin. Sorun devam ederse işlem numarasını paylaşın.</p>
+    <p>İşlem: @Model.RequestId</p>
+    <a class="button" asp-controller="Home" asp-action="Index">Vitrine dön</a>
+</div>

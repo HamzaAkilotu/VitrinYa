@@ -1,0 +1,26 @@
+@using Microsoft.AspNetCore.WebUtilities
+@{
+    var pager = ViewData["Pager"] as PageInfo;
+    string PageUrl(int number)
+    {
+        var query = Context.Request.Query
+            .Where(x => !x.Key.Equals("page", StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(x => x.Key, x => (string?)x.Value.ToString());
+        query["page"] = number.ToString();
+        return QueryHelpers.AddQueryString(Context.Request.Path.Value!, query);
+    }
+}
+@if (pager is { PageCount: > 1 })
+{
+    <nav class="pagination" aria-label="Sayfalar">
+        @if (pager.Current > 1) { <a href="@PageUrl(pager.Current - 1)" rel="prev" aria-label="Önceki sayfa">←</a> }
+        @if (pager.Current > 3) { <a href="@PageUrl(1)">1</a><span aria-hidden="true">…</span> }
+        @for (var number = Math.Max(1, pager.Current - 2); number <= Math.Min(pager.PageCount, pager.Current + 2); number++)
+        {
+            <a href="@PageUrl(number)" class="@(number == pager.Current ? "active" : "")" aria-current="@(number == pager.Current ? "page" : null)">@number</a>
+        }
+        @if (pager.Current < pager.PageCount - 2) { <span aria-hidden="true">…</span><a href="@PageUrl(pager.PageCount)">@pager.PageCount</a> }
+        @if (pager.Current < pager.PageCount) { <a href="@PageUrl(pager.Current + 1)" rel="next" aria-label="Sonraki sayfa">→</a> }
+    </nav>
+}
+

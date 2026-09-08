@@ -1,0 +1,34 @@
+@model RegisterInput
+@{ ViewData["Title"] = "Hesap oluştur"; }
+<section class="auth-page container">
+    <div class="auth-story">
+        <div class="eyebrow">ARAMIZA HOŞ GELDİN</div>
+        <h1>Senin için<br/>
+            <em>güzel bir başlangıç.</em>
+        </h1>
+        <p>Küçük mutluluklara yer aç.</p>
+        <span>✳</span>
+    </div>
+    <div class="auth-card">
+        <h2>Tanışalım.</h2>
+        <p>Bir hesap, yepyeni keşifler.</p>
+        <form asp-action="Register" method="post">
+<input asp-for="ReturnUrl" type="hidden" />
+            <div asp-validation-summary="All" class="validation">
+            </div>
+            <label asp-for="DisplayName">
+            </label>
+            <input asp-for="DisplayName" autocomplete="name"/>
+            <label asp-for="Email">
+            </label>
+            <input asp-for="Email" autocomplete="username"/>
+            <label asp-for="Password">
+            </label>
+            <input asp-for="Password" autocomplete="new-password"/>
+            <p class="fine-print">En az 8 karakter; büyük/küçük harf, rakam ve özel karakter.</p>
+            <button class="button" type="submit">Hesap oluştur ↗</button>
+        </form>
+        <p>Zaten bir hesabın var mı? <a class="underlink" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Giriş yap</a>
+        </p>
+    </div>
+</section>

@@ -1,0 +1,159 @@
+@inject VitrinYa.Services.AccountService Accounts
+@inject VitrinYa.Services.CatalogService Catalog
+@inject VitrinYa.Services.CartService Cart
+@inject VitrinYa.Services.CurrentUser Current
+@{
+var currentUser = await Accounts.FindAsync(Current.Id);
+var panel = ViewData["Panel"] is true;
+var title = ViewData["Title"]?.ToString() ?? "Küçük markalar, güzel keşifler";
+var cartCount = await Cart.CountAsync();
+var navigationCategories = Model is CatalogViewModel catalog ? catalog.Categories : await Catalog.CategoriesAsync();
+}
+<!DOCTYPE html>
+<html lang="tr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#304c3d" />
+        <meta name="description" content="Küçük markaların özenle ürettiği ev, masaüstü ve hediye ürünlerini VitrinYa'da keşfet." />
+        <title>@title · VitrinYa</title>
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;750;800&display=swap" rel="stylesheet" />
+        <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    </head>
+    <body class="@(panel ? "workspace-page" : "storefront-page")">
+        <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <symbol id="i-bag" viewBox="0 0 24 24">
+                <path d="M5 7h14l1 14H4L5 7Z M8 8V6a4 4 0 0 1 8 0v2"/>
+            </symbol>
+            <symbol id="i-search" viewBox="0 0 24 24">
+                <circle cx="10.5" cy="10.5" r="6.5"/>
+                <path d="m16 16 5 5"/>
+            </symbol>
+            <symbol id="i-user" viewBox="0 0 24 24">
+                <circle cx="12" cy="7" r="4"/>
+                <path d="M4 22v-3a8 8 0 0 1 16 0v3"/>
+            </symbol>
+            <symbol id="i-arrow" viewBox="0 0 24 24">
+                <path d="M4 12h16m-6-6 6 6-6 6"/>
+            </symbol>
+            <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" /></symbol>
+            <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M9 4v6M15 14v6" /></symbol>
+        </svg>
+        <a class="skip-link" href="#main">İçeriğe geç</a>
+        <div class="announcement">Küçük markalar. Özenli tasarımlar. Güzel keşifler. <span>Birlikte daha güzel ♡</span>
+        </div>
+        <header class="site-header">
+            <div class="header-main container">
+                <a class="brand" asp-controller="Home" asp-action="Index">vitrin<span>ya</span>
+                    <i>
+                    </i>
+                </a>
+                <form class="header-search" asp-controller="Home" asp-action="Catalog" method="get" role="search">
+                    <svg class="icon">
+                        <use href="#i-search"/>
+                    </svg>
+                    <input name="Search" aria-label="Ürün veya marka ara" placeholder="Biraz ilham, güzel bir şeyler ara..." value="@Context.Request.Query["Search"]" />
+                    <button type="submit">Ara</button>
+                </form>
+                <div class="header-actions">
+                    <a asp-controller="Home" asp-action="Catalog" asp-route-FavoritesOnly="true" aria-label="Favorilerim"><svg class="icon"><use href="#i-heart" /></svg><span>Favorilerim</span></a>
+                    <a asp-controller="Panel" asp-action="Index" aria-label="@(currentUser is null ? "Giriş yap" : "Hesabım")">
+                        <svg class="icon">
+                            <use href="#i-user"/>
+                        </svg>
+                        <span>@(currentUser is null ? "Giriş yap" : "Hesabım")</span>
+                    </a>
+                    <a asp-controller="Cart" asp-action="Index" aria-label="Sepetim, @cartCount ürün">
+                        <svg class="icon">
+                            <use href="#i-bag"/>
+                        </svg>
+                        <span>Sepetim</span><b class="cart-count" aria-label="@cartCount ürün">@cartCount</b>
+                    </a>
+                </div>
+            </div>
+            <nav class="shop-nav container" aria-label="Ana menü">
+                <a asp-controller="Home" asp-action="Catalog">Tüm ürünler</a>
+                @foreach (var category in navigationCategories) {
+                <a asp-controller="Home" asp-action="Catalog" asp-route-CategoryId="@category.Id">@category.Name</a>
+                }
+                <a asp-controller="Home" asp-action="Index" asp-fragment="collections">Koleksiyonlar</a>
+                <a class="nav-special" asp-controller="Home" asp-action="Catalog" asp-route-MaxPrice="500">500 TL altı <span>↗</span>
+                </a>
+            </nav>
+        </header>
+        <main id="main" class="@(panel ? "container panel-shell" : "")">
+            @if (TempData["Success"] is string success) { <div class="notice success container" role="status">@success</div> }
+            @if (TempData["Error"] is string error) { <div class="notice error container" role="alert">@error</div> }
+            @if (panel) {
+            <aside class="panel-sidebar">
+                <div class="eyebrow">VİTRİNYA STUDIO</div>
+                <h3>@(User.IsInRole(Roles.Admin) ? "Yönetim paneli" : User.IsInRole(Roles.Editor) ? "Editör paneli" : User.IsInRole(Roles.Seller) ? "Satıcı paneli" : "Hesabım")</h3>
+                <p>@currentUser?.DisplayName</p>
+                <nav aria-label="Panel menüsü">
+                    <a asp-controller="Panel" asp-action="Index">Genel bakış <span>↗</span>
+                    </a>
+                    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.Seller)) {
+                    <a asp-controller="Panel" asp-action="Products">@(User.IsInRole(Roles.Seller) ? "Ürünlerim" : "Ürünler")</a>
+                    <a asp-controller="Panel" asp-action="Stock">Stok hareketleri</a>
+                    }
+                    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor)) {
+                    <a asp-controller="Panel" asp-action="Products" asp-route-status="InReview">İnceleme kuyruğu</a>
+                    <a asp-controller="Panel" asp-action="Collections">Koleksiyonlar</a>
+                    }
+                    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Seller)) {
+                    <a asp-controller="Panel" asp-action="Orders">@(User.IsInRole(Roles.Seller) ? "Satışlarım" : "Tüm siparişler")</a>
+                    }
+                    @if (User.IsInRole(Roles.Admin)) {
+                    <a asp-controller="Admin" asp-action="Users">Kullanıcılar & roller</a>
+                    <a asp-controller="Admin" asp-action="Categories">Kategoriler</a>
+                    }
+                    <a asp-controller="Orders" asp-action="Index">Siparişlerim</a>
+                    <a asp-controller="Home" asp-action="Catalog" asp-route-FavoritesOnly="true">Favorilerim</a>
+                    <a asp-controller="Home" asp-action="Index">Vitrine dön</a>
+                </nav>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button class="text-button" type="submit">Güvenli çıkış ↗</button>
+                </form>
+            </aside>
+            <section class="panel-content">@RenderBody()</section>
+            } else { @RenderBody() }
+        </main>
+        <footer class="site-footer">
+            <div class="container footer-grid">
+                <div>
+                    <a class="brand" asp-controller="Home" asp-action="Index">vitrin<span>ya</span>
+                        <i>
+                        </i>
+                    </a>
+                    <p>Gündelik hayata güzel dokunuşlar.<br/>Küçük markalardan, senin dünyana.</p>
+                </div>
+                <div>
+                    <h4>Biraz keşif</h4>
+                    <a asp-controller="Home" asp-action="Catalog">Tüm ürünler</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="collections">Koleksiyonlar</a>
+                </div>
+                <div>
+                    <h4>Senin alanın</h4>
+                    <a asp-controller="Panel" asp-action="Index">Hesabım</a>
+                    <a asp-controller="Orders" asp-action="Index">Siparişlerim</a>
+                </div>
+                <div>
+                    <h4>Özenle bir araya geldik.</h4>
+                    <p>Bağımsız üreticiler, ilham veren<br/>tasarımlar ve küçük mutluluklar.</p>
+                </div>
+            </div>
+            <div class="container footer-bottom">
+                <span>© @DateTime.Now.Year VitrinYa</span>
+                <span>Demo mağaza · Ödeme ve kargo simülasyonu</span>
+                <span>Az, öz, özenli.</span>
+            </div>
+        </footer>
+        <script src="~/js/site.js" asp-append-version="true" defer>
+        </script>
+        @await RenderSectionAsync("Scripts", required: false)
+    </body>
+</html>

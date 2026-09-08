@@ -1,0 +1,90 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Panel"; ViewData["Panel"] = true; var customer = User.IsInRole(Roles.Customer); }
+<div class="page-heading">
+    <div class="eyebrow">HER GÜN YENİ BİR BAŞLANGIÇ</div>
+    <h1>@(customer ? "Kendi küçük dünyana hoş geldin." : "Vitrininde bugün")</h1>
+    <p>@(customer ? "Keşiflerine kaldığın yerden devam et." : "Ürünlerini, bekleyen işlerini ve güzel gelişmeleri bir arada gör.")</p>
+</div>
+@if (customer) {
+<div class="welcome-banner">
+    <h2>Güzel şeyler seni bekliyor.</h2>
+    <p>Küçük markalardan yeni favorilerini keşfet.</p>
+    <a class="button" asp-controller="Home" asp-action="Catalog">Vitrini keşfet ↗</a>
+</div>
+<div class="stats-grid">
+    <a class="stat" asp-controller="Orders" asp-action="Index">
+        <p>Siparişlerim</p>
+        <strong>@Model.OrderCount</strong>
+        <span>Geçmişini görüntüle ↗</span>
+    </a>
+    <a class="stat" asp-controller="Cart" asp-action="Index">
+        <p>Sepetim</p>
+        <strong>♡</strong>
+        <span>Seçimlerini tamamla ↗</span>
+    </a>
+    <a class="stat" asp-controller="Home" asp-action="Catalog" asp-route-MaxPrice="500">
+        <p>Küçük mutluluklar</p>
+        <strong>500</strong>
+        <span>TL altını keşfet ↗</span>
+    </a>
+</div>
+} else {
+<div class="stats-grid">
+    <div class="stat">
+        <p>Toplam ürün</p>
+        <strong>@Model.ProductCount</strong>
+        <span>Vitrinindeki tasarımlar</span>
+    </div>
+    <div class="stat">
+        <p>İncelemede</p>
+        <strong>@Model.ReviewCount</strong>
+        <span>Yayın için bekliyor</span>
+    </div>
+    <div class="stat">
+        <p>@(User.IsInRole(Roles.Editor) ? "Çalışma alanı" : "Sipariş")</p>
+        <strong>@(User.IsInRole(Roles.Editor) ? "✧" : Model.OrderCount.ToString())</strong>
+        <span>@(User.IsInRole(Roles.Editor) ? "Özenle seç, güvenle yayınla" : $"{(Model.RevenueCents / 100m):N2} TL · Demo satış")</span>
+    </div>
+</div>
+<div class="welcome-banner">
+    <h2>@(User.IsInRole(Roles.Editor) ? "Bir sonraki güzel keşfi seç." : "Vitrine yeni bir hikâye ekle.")</h2>
+    <p>Taslak → İncelemede → Yayında. Her adımda özen.</p>
+    <a class="button" asp-action="@(User.IsInRole(Roles.Editor) ? "Products" : "Edit")" asp-route-status="@(User.IsInRole(Roles.Editor) ? "InReview" : null)">@(User.IsInRole(Roles.Editor) ? "İnceleme kuyruğunu aç ↗" : "Yeni ürün ekle +")</a>
+</div>
+<div class="section-heading horizontal">
+    <h2>Son eklenen ürünler</h2>
+    <a class="underlink" asp-action="Products">Tüm ürünler ↗</a>
+</div>
+@if (Model.Products.Count == 0) { <div class="surface">
+    <p>Henüz ürün yok. İlk tasarımını ekleyerek başlayabilirsin.</p>
+</div> }
+else { <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>ÜRÜN</th>
+                <th>DURUM</th>
+                <th>STOK</th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>@foreach (var p in Model.Products) { <tr>
+                <td>
+                    <div class="table-product">
+                        <img src="@p.ImageUrl" alt=""/>
+                        <span>@p.Name<small>@p.Seller.DisplayName</small>
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge @p.Status">@p.Status.Turkish()</span>
+                </td>
+                <td>@p.Stock</td>
+                <td>
+                    <a class="underlink" asp-action="Edit" asp-route-id="@p.Id">Aç ↗</a>
+                </td>
+            </tr> }</tbody>
+    </table>
+</div> }
+}

@@ -1,0 +1,42 @@
+@model LoginInput
+@inject IWebHostEnvironment Environment
+@{ ViewData["Title"] = "Giriş yap"; }
+<section class="auth-page container">
+    <div class="auth-story">
+        <div class="eyebrow">TEKRAR MERHABA</div>
+        <h1>Güzel şeylere<br/>
+            <em>bir adım daha yakın.</em>
+        </h1>
+        <p>Favori köşeni yenile. Sevdiklerini gülümset.<br/>Küçük markaların dünyasına katıl.</p>
+        <span>✳</span>
+    </div>
+    <div class="auth-card">
+        <h2>Hoş geldin.</h2>
+        <p>VitrinYa hesabınla devam et.</p>
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="All" class="validation">
+            </div>
+            <input asp-for="ReturnUrl" type="hidden"/>
+            <label asp-for="Email">
+            </label>
+            <input asp-for="Email" autocomplete="username"/>
+            <label asp-for="Password">
+            </label>
+            <input asp-for="Password" autocomplete="current-password"/>
+            <button class="button" type="submit">Giriş yap ↗</button>
+        </form>
+        <p>Henüz tanışmadık mı? <a class="underlink" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Hesap oluştur</a>
+        </p>
+        @if (Environment.IsDevelopment()) { <details class="demo-accounts">
+            <summary>Demo hesaplarla keşfet</summary>
+            <p>Tüm hesapların şifresi: <code>VitrinYa!2026</code>
+            </p>
+            <ul>
+                <li>kullanici@@vitrinya.local</li>
+                <li>satici@@vitrinya.local</li>
+                <li>editor@@vitrinya.local</li>
+                <li>admin@@vitrinya.local</li>
+            </ul>
+        </details> }
+    </div>
+</section>

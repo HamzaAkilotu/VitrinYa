@@ -1,0 +1,63 @@
+@model List<Product>
+@{ ViewData["Title"] = "Ürün yönetimi"; ViewData["Panel"] = true; ProductStatus? status = ViewBag.Status; }
+<div class="page-heading">
+    <div class="eyebrow">TASARIMLARININ ALANI</div>
+    <h1>@(User.IsInRole(Roles.Seller) ? "Ürünlerim" : "Ürün yönetimi")</h1>
+    <p>Ürün bilgilerini düzenle, yayın sürecini takip et, stoklarını güncel tut.</p>
+</div>
+<div class="toolbar">
+    <div class="panel-tabs">
+        <a asp-action="Products" class="@(!status.HasValue ? "active" : "")">Tümü</a>@foreach (var s in Enum.GetValues<ProductStatus>()) { <a asp-action="Products" asp-route-status="@s" class="@(s == status ? "active" : "")">@s.Turkish()</a> }</div>
+    <a class="button small" asp-action="Edit">Yeni ürün +</a>
+</div>
+<form class="inline-form" asp-action="Products" method="get">
+    <input name="search" placeholder="Ürün adına göre ara" aria-label="Ürün ara" value="@Context.Request.Query["search"]" style="max-width:260px"/>
+    <input name="status" type="hidden" value="@status"/>
+    <button type="submit" class="button small outline">Ara</button>
+</form>
+<br/>
+@if (Model.Count == 0) { <div class="empty">
+    <h2>Burada henüz ürün yok.</h2>
+    <p>Yeni ürün ekleyebilir veya başka bir durum seçebilirsin.</p>
+</div> }
+else { <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>ÜRÜN</th>
+                <th>FİYAT</th>
+                <th>DURUM</th>
+                <th>STOK</th>
+                <th>İŞLEM</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model) { <tr>
+                <td>
+                    <div class="table-product">
+                        <img src="@p.ImageUrl" alt=""/>
+                        <span>@p.Name<small>@p.Seller.DisplayName · @p.Category.Name</small>
+                        </span>
+                    </div>
+                </td>
+                <td>@p.Price.ToString("N2") TL</td>
+                <td>
+                    <span class="badge @p.Status">@p.Status.Turkish()</span>
+                </td>
+                <td>
+                    <form class="inline-form" asp-action="UpdateStock" method="post">
+                        <input type="hidden" name="id" value="@p.Id"/>
+                        <input type="hidden" name="version" value="@p.Version"/>
+                        <input type="number" name="stock" min="0" max="100000" value="@p.Stock" aria-label="@p.Name stok"/>
+                        <button class="text-button" type="submit">Kaydet</button>
+                    </form>
+                </td>
+                <td>
+                    <a class="underlink" asp-action="Edit" asp-route-id="@p.Id">Düzenle ↗</a>
+                </td>
+            </tr> }
+        </tbody>
+    </table>
+</div> }
+
+<partial name="_Pager" />

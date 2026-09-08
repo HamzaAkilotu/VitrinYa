@@ -1,0 +1,29 @@
+@model CollectionInput
+@{ ViewData["Title"] = Model.Id == 0 ? "Yeni koleksiyon" : "Koleksiyonu düzenle"; ViewData["Panel"] = true; List<Product> products = ViewBag.Products; }
+<div class="page-heading">
+    <div class="eyebrow">İLHAM VEREN SEÇİMLER</div>
+    <h1>@ViewData["Title"]</h1>
+</div>
+<form class="surface" asp-action="Collection" method="post">
+    <div asp-validation-summary="All" class="validation">
+    </div>
+    <input asp-for="Id" type="hidden"/>
+    <label asp-for="Name">
+    </label>
+    <input asp-for="Name"/>
+    <label asp-for="Description">
+    </label>
+    <textarea asp-for="Description" rows="3">
+    </textarea>
+    <label>Koleksiyon ürünleri</label>
+    <p>Yalnızca yayındaki ve aktif satıcılara ait ürünler vitrinde görünür.</p>
+    <div class="check-list">@foreach (var p in products) { <label>
+            <input type="checkbox" name="ProductIds" value="@p.Id" checked="@Model.ProductIds.Contains(p.Id)"/>
+            <span>@p.Name <small class="muted">(@p.Status.Turkish())</small>
+            </span>
+        </label> }</div>
+    <div class="form-actions">
+        <button class="button" type="submit">Koleksiyonu kaydet</button>
+        <a class="text-button" asp-action="Collections">Vazgeç</a>
+    </div>
+</form>

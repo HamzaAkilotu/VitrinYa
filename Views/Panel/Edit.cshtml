@@ -1,0 +1,120 @@
+@model ProductInput
+@{ ViewData["Title"] = Model.Id == 0 ? "Yeni ürün" : "Ürün düzenle"; ViewData["Panel"] = true; Product? product = ViewBag.Product; var reviewer = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor); }
+<div class="page-heading">
+    <div class="eyebrow">ÖZENLİ BİLGİ, GÜZEL BİR VİTRİN</div>
+    <h1>@ViewData["Title"]</h1>
+    <p>Bilgi veya fiyat düzenlemesi ürünü taslağa alır. Yalnız stok değişikliği için ürün listesini kullanın.</p>
+</div>
+@if (product is not null) { <div class="toolbar">
+    <span class="badge @product.Status">@product.Status.Turkish()</span>
+    <span class="muted">Ürün #@product.Id</span>
+</div>
+@if (!string.IsNullOrEmpty(product.ReviewNote)) { <div class="review-box">
+    <b>Editörün düzeltme notu</b>
+    <p>@product.ReviewNote</p>
+</div> }
+}
+<form class="surface" asp-action="Edit" method="post">
+    <div asp-validation-summary="All" class="validation">
+    </div>
+    <input asp-for="Id" type="hidden"/>
+    <input asp-for="Version" type="hidden"/>
+    <div class="form-grid">
+        <div class="full">
+            <label asp-for="Name">
+            </label>
+            <input asp-for="Name"/>
+        </div>
+        <div>
+            <label asp-for="CategoryId">
+            </label>
+            <select asp-for="CategoryId" asp-items="ViewBag.Categories">
+                <option value="">Kategori seçin</option>
+            </select>
+        </div>
+        @if (reviewer && Model.Id == 0) { <div>
+            <label asp-for="SellerId">
+            </label>
+            <select asp-for="SellerId" asp-items="ViewBag.Sellers">
+                <option value="">Satıcı seçin</option>
+            </select>
+        </div> }
+        <div>
+            <label asp-for="Price">
+            </label>
+            <input asp-for="Price" type="text" inputmode="decimal" placeholder="Örn. 690,00"/>
+        </div>
+        <div>
+            <label asp-for="Stock">
+            </label>
+            <input asp-for="Stock" min="0" max="100000"/>
+        </div>
+        <div>
+            <label asp-for="PreparationDays">
+            </label>
+            <input asp-for="PreparationDays" min="1" max="30"/>
+        </div>
+        <div class="full">
+            <label asp-for="Description">
+            </label>
+            <textarea asp-for="Description" rows="5">
+            </textarea>
+        </div>
+        <div>
+            <label asp-for="Material">
+            </label>
+            <input asp-for="Material"/>
+        </div>
+        <div>
+            <label asp-for="Dimensions">
+            </label>
+            <input asp-for="Dimensions"/>
+        </div>
+        <div class="full">
+            <label asp-for="BoxContents">
+            </label>
+            <input asp-for="BoxContents"/>
+        </div>
+        <div class="full">
+            <label asp-for="ImageUrl">
+            </label>
+            <input asp-for="ImageUrl" type="url" placeholder="https://..."/>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button class="button" type="submit">Taslağı kaydet</button>
+        <a class="text-button" asp-action="Products">Ürünlere dön</a>
+    </div>
+</form>
+@if (product is not null) {
+@if (product.Status is ProductStatus.Draft or ProductStatus.ChangesRequested) { <div class="surface">
+    <h3>Yayın için hazır mı?</h3>
+    <p>Önce yukarıdaki değişiklikleri kaydedin, sonra incelemeye gönderin.</p>
+    <form asp-action="Submit" method="post">
+        <input type="hidden" name="id" value="@product.Id"/>
+        <input type="hidden" name="version" value="@product.Version"/>
+        <button class="button" type="submit">İncelemeye gönder ↗</button>
+    </form>
+</div> }
+@if (reviewer && product.Status == ProductStatus.InReview) { <div class="surface">
+    <h3>Editör değerlendirmesi</h3>
+    <p>Ürün bilgilerini ve görseli kontrol edin. Yayınlamak ürünü müşterilere açar.</p>
+    <img src="@product.ImageUrl" alt="@product.Name" style="width:180px;height:180px;border-radius:8px"/>
+    <form asp-action="Review" method="post">
+        <input name="id" type="hidden" value="@product.Id"/>
+        <input name="version" type="hidden" value="@product.Version"/>
+        <label for="note">Düzeltme açıklaması (geri gönderirken zorunlu)</label>
+        <textarea id="note" name="note" maxlength="1000" rows="3">
+        </textarea>
+        <div class="form-actions">
+            <button class="button" type="submit" name="publish" value="true">Ürünü yayınla</button>
+            <button class="button outline" type="submit" name="publish" value="false">Düzeltme iste</button>
+        </div>
+    </form>
+</div> }
+<form asp-action="Delete" method="post" data-confirm="Ürün vitrinden ve ürün listenizden kaldırılacak. Geçmiş siparişler korunacak. Devam edilsin mi?">
+    <input type="hidden" name="id" value="@product.Id"/>
+    <input type="hidden" name="version" value="@product.Version"/>
+    <button type="submit" class="text-button">Ürünü kaldır</button>
+</form>
+}

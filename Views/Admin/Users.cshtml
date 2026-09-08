@@ -1,0 +1,54 @@
+@model List<UserRow>
+@{ ViewData["Title"] = "Kullanıcılar ve roller"; ViewData["Panel"] = true; }
+<div class="page-heading">
+    <div class="eyebrow">VİTRİNYA TOPLULUĞU</div>
+    <h1>Kullanıcılar & roller</h1>
+    <p>Her hesabın bir rolü var. Satıcıları, editörleri ve kullanıcıları buradan yönetin.</p>
+</div>
+<div class="toolbar">
+    <span>@((ViewData["Pager"] as PageInfo)?.Total ?? Model.Count) hesap</span>
+    <a class="button small" asp-action="UserEdit">Yeni hesap +</a>
+</div>
+
+<form asp-action="Users" method="get" class="admin-search">
+    <label class="sr-only" for="user-search">İsim, marka veya e-posta</label>
+    <input id="user-search" name="search" value="@Context.Request.Query["search"]" placeholder="İsim, marka veya e-posta ara…" />
+    <label class="sr-only" for="user-role">Rol</label>
+    <select id="user-role" name="role"><option value="">Tüm roller</option>
+        @foreach (var role in Roles.All) { <option value="@role" selected="@(Context.Request.Query["role"] == role)">@Roles.Label(role)</option> }
+    </select>
+    <button class="button small" type="submit">Filtrele</button>
+    <a class="text-button" asp-action="Users">Temizle</a>
+</form>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>HESAP</th>
+                <th>ROL</th>
+                <th>DURUM</th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>@foreach (var row in Model) { <tr>
+                <td>@row.User.DisplayName<small>@row.User.Email</small>
+                </td>
+                <td>@Roles.Label(row.Role)</td>
+                <td>
+                    <span class="badge">@(row.User.IsActive ? "Aktif" : "Pasif")</span>
+                </td>
+                <td>
+                    <a class="underlink" asp-action="UserEdit" asp-route-id="@row.User.Id">Yönet ↗</a>
+                </td>
+            </tr> }</tbody>
+    </table>
+</div>
+<div class="surface" style="margin-top:22px">
+    <h3>Yetkiler bir bakışta</h3>
+    <p>
+        <b>Admin:</b> tüm yönetim işlemleri · <b>Editör:</b> ürün bilgileri, inceleme ve koleksiyonlar · <b>Satıcı:</b> kendi ürünleri, stokları ve satışları · <b>Kullanıcı:</b> alışveriş ve kendi siparişleri.</p>
+    <p>Hesabı pasifleştirmek erişimi kapatır. Sipariş geçmişini korumak için hesaplar kalıcı silinmez.</p>
+</div>
+
+<partial name="_Pager" />

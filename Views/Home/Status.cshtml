@@ -1,0 +1,10 @@
+@model ErrorViewModel
+@{ ViewData["Title"] = Model.StatusCode == 404 ? "Sayfa bulunamadı" : "İşlem tamamlanamadı"; }
+<section class="container empty status-page">
+    <div class="eyebrow">VİTRİNDE KÜÇÜK BİR MOLA</div>
+    <span class="status-number">@Model.StatusCode</span>
+    <h1>@(Model.StatusCode == 404 ? "Aradığın sayfa burada değil." : "Bu adımı tamamlayamadık.")</h1>
+    <p>@(Model.StatusCode == 404 ? "Ürün kaldırılmış veya bağlantı değişmiş olabilir. Yeni bir keşifle devam edelim." : "Sayfayı yenileyip tekrar deneyebilirsin.")</p>
+    <a class="button" asp-controller="Home" asp-action="Catalog">Vitrine dön ↗</a>
+</section>
+
